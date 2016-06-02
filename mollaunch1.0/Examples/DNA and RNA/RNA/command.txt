@@ -1,0 +1,2 @@
+MOLNW RNA.pdb
+MODFY

@@ -1,0 +1,4 @@
+1ATN	03/08/91
+Atomic structure of the actin:DNASE I complex
+Kabsch, W., Mannherz, H.G., Suck, D., Pai, E., Holmes, K.C.
+2.8 A	X-RAY DIFFRACTION

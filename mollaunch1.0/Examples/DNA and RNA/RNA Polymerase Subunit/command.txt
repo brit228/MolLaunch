@@ -1,0 +1,2 @@
+MOLNW RNApolymerasesubunit.pdb
+MODFY

@@ -1,0 +1,2 @@
+MOLNW actin.pdb
+MODFY

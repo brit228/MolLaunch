@@ -1,0 +1,2 @@
+MOLNW furin.pdb
+MODFY
