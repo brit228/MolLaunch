@@ -19,11 +19,11 @@ namespace eval ::mollaunch:: {
 	namespace export mollaunch
 
 	variable examplemoleculetype ""
-	variable examplemoleculename
+	variable examplemoleculename ""
 	variable pdbmoleculeid ID#
 	variable pdbmoleculesearch None
 	variable pdbmoleculeentry Search Name
-	variable pdbmoleculeresult
+	variable pdbmoleculeresult ""
 	variable additiontypepdb
 	variable additiontype
 	variable pdbarr
@@ -33,6 +33,8 @@ namespace eval ::mollaunch:: {
 	variable modifydraw
 	variable modifycolor
 	variable modifymaterial
+	variable modifybg 16
+	variable moleculeinfo ""
 	variable w
 }
 
@@ -74,8 +76,9 @@ proc ::mollaunch::mollaunch {} {
 ## Info Section of GUI
 
 	labelframe $w.info -text "Molecule Info" -font {-weight bold}
-	frame $w.info.frame -width 400 -height 70
+	frame $w.info.frame -width 270 -height 130
 	label $w.info.frame.info -text "\n\n\n" -justify left
+	button $w.info.copy -text "Copy Info to Clipboard" -command {::mollaunch::clipboardcopy}
 
 ## PDB Section of GUI
 
@@ -87,43 +90,51 @@ proc ::mollaunch::mollaunch {} {
 	button $w.pdb.namebutton -text SEARCH -command "::mollaunch::search"
 	label $w.pdb.namesearchlabel -text "Search term: "
 	label $w.pdb.namesearchterm -text ""
-	frame $w.pdb.framed -height 200 -width 720
-	listbox $w.pdb.framed.nameresults -width 100
+	frame $w.pdb.framed -height 220 -width 500
+	listbox $w.pdb.framed.nameresults -width 70
 	bind $w.pdb.framed.nameresults <<ListboxSelect>> {::mollaunch::setsearchresult}
 	scrollbar $w.pdb.framed.nameresultsscroll -command [list $w.pdb.framed.nameresults yview]
+	scrollbar $w.pdb.framed.horizontalscroll -command [list $w.pdb.framed.nameresults xview] -orient horizontal
 	label $w.pdb.framed.nameselect -text "Selected result: " -font {-weight bold}
 	radiobutton $w.pdb.selectID -variable additiontypepdb -value ID -text "Add by Molecule ID"
 	radiobutton $w.pdb.selectname -variable additiontypepdb -value name -text "Add by Molecule Name"
 
 ## Modify molecule section of GUI
 
-	labelframe $w.lf_mod -text "Modify Molecule: " -font {-weight bold}
+	labelframe $w.lf_mod -text "Modify Molecule" -font {-weight bold}
 	labelframe $w.lf_mod.draw -text "Drawing Method"
-	labelframe $w.lf_mod.color -text "Molecule Color"
-	labelframe $w.lf_mod.material -text "Molecule Material"
-	radiobutton $w.lf_mod.draw.lines -variable ::mollaunch::modifydraw -value Lines -text Lines
-	radiobutton $w.lf_mod.draw.vwd -variable ::mollaunch::modifydraw -value VDW -text "VDW (Van der Waals)"
-	radiobutton $w.lf_mod.draw.ribbon -variable ::mollaunch::modifydraw -value Ribbons -text Ribbons
-	radiobutton $w.lf_mod.draw.newribbon -variable ::mollaunch::modifydraw -value NewRibbons -text "New Ribbons"
-	radiobutton $w.lf_mod.draw.cartoon -variable ::mollaunch::modifydraw -value Cartoon -text Cartoon
-	radiobutton $w.lf_mod.draw.newcartoon -variable ::mollaunch::modifydraw -value NewCartoon -text "New Cartoon"
-	radiobutton $w.lf_mod.draw.licorice -variable ::mollaunch::modifydraw -value Licorice -text Licorice
-	radiobutton $w.lf_mod.draw.surf -variable ::mollaunch::modifydraw -value Surf -text Surf
-	radiobutton $w.lf_mod.draw.quicksurf -variable ::mollaunch::modifydraw -value QuickSurf -text "Quick Surf"
-	radiobutton $w.lf_mod.draw.cpk -variable ::mollaunch::modifydraw -value CPK -text CPK
-	radiobutton $w.lf_mod.color.default -text Default -variable ::mollaunch::modifycolor -value default
-	radiobutton $w.lf_mod.color.red -text Red -variable ::mollaunch::modifycolor -value 1 -bg red
-	radiobutton $w.lf_mod.color.green -text Green -variable ::mollaunch::modifycolor -value 7 -bg green
-	radiobutton $w.lf_mod.color.blue -text Blue -variable ::mollaunch::modifycolor -value 0 -bg blue
-	radiobutton $w.lf_mod.color.yellow -text Yellow -variable ::mollaunch::modifycolor -value 4 -bg yellow
-	radiobutton $w.lf_mod.color.orange -text Orange -variable ::mollaunch::modifycolor -value 3 -bg orange
-	radiobutton $w.lf_mod.material.opaque -text Opaque -variable ::mollaunch::modifymaterial -value Opaque
-	radiobutton $w.lf_mod.material.glossy -text Glossy -variable ::mollaunch::modifymaterial -value Glossy
-	radiobutton $w.lf_mod.material.diffuse -text Diffuse -variable ::mollaunch::modifymaterial -value Diffuse
+	labelframe $w.lf_mod.color -text "Color"
+	labelframe $w.lf_mod.material -text "Material"
+	labelframe $w.lf_mod.background -text "Background"
+	radiobutton $w.lf_mod.draw.lines -variable ::mollaunch::modifydraw -value Lines -text Lines -indicatoron 0
+	radiobutton $w.lf_mod.draw.vwd -variable ::mollaunch::modifydraw -value VDW -text "VDW (Van der Waals)" -indicatoron 0
+	radiobutton $w.lf_mod.draw.ribbon -variable ::mollaunch::modifydraw -value Ribbons -text Ribbons -indicatoron 0
+	radiobutton $w.lf_mod.draw.newribbon -variable ::mollaunch::modifydraw -value NewRibbons -text "New Ribbons" -indicatoron 0
+	radiobutton $w.lf_mod.draw.cartoon -variable ::mollaunch::modifydraw -value Cartoon -text Cartoon -indicatoron 0
+	radiobutton $w.lf_mod.draw.newcartoon -variable ::mollaunch::modifydraw -value NewCartoon -text "New Cartoon" -indicatoron 0
+	radiobutton $w.lf_mod.draw.licorice -variable ::mollaunch::modifydraw -value Licorice -text Licorice -indicatoron 0
+	radiobutton $w.lf_mod.draw.surf -variable ::mollaunch::modifydraw -value Surf -text Surf -indicatoron 0
+	radiobutton $w.lf_mod.draw.quicksurf -variable ::mollaunch::modifydraw -value QuickSurf -text "Quick Surf" -indicatoron 0
+	radiobutton $w.lf_mod.draw.cpk -variable ::mollaunch::modifydraw -value CPK -text CPK -indicatoron 0
+	radiobutton $w.lf_mod.draw.paperchain -variable ::mollaunch::modifydraw -value PaperChain -text "Paper Chain" -indicatoron 0
+	radiobutton $w.lf_mod.draw.beads -variable ::mollaunch::modifydraw -value Beads -text Beads -indicatoron 0
+	radiobutton $w.lf_mod.color.default -text Default -variable ::mollaunch::modifycolor -value default -indicatoron 0
+	radiobutton $w.lf_mod.color.red -text Red -variable ::mollaunch::modifycolor -value 1 -bg red -indicatoron 0
+	radiobutton $w.lf_mod.color.green -text Green -variable ::mollaunch::modifycolor -value 7 -bg green -indicatoron 0
+	radiobutton $w.lf_mod.color.blue -text Blue -variable ::mollaunch::modifycolor -value 0 -bg blue -indicatoron 0
+	radiobutton $w.lf_mod.color.yellow -text Yellow -variable ::mollaunch::modifycolor -value 4 -bg yellow -indicatoron 0
+	radiobutton $w.lf_mod.color.orange -text Orange -variable ::mollaunch::modifycolor -value 3 -bg orange -indicatoron 0
+	radiobutton $w.lf_mod.material.opaque -text Opaque -variable ::mollaunch::modifymaterial -value Opaque -indicatoron 0
+	radiobutton $w.lf_mod.material.glossy -text Glossy -variable ::mollaunch::modifymaterial -value Glossy -indicatoron 0
+	radiobutton $w.lf_mod.material.diffuse -text Diffuse -variable ::mollaunch::modifymaterial -value Diffuse -indicatoron 0
+	radiobutton $w.lf_mod.material.transparent -text Transparent -variable ::mollaunch::modifymaterial -value Transparent -indicatoron 0
+	radiobutton $w.lf_mod.background.white -text White -variable ::mollaunch::modifybg -value 8 -indicatoron 0 -command "color Display Background 8"
+	radiobutton $w.lf_mod.background.black -text Black -variable ::mollaunch::modifybg -value 16 -indicatoron 0 -command "color Display Background 16"
+	radiobutton $w.lf_mod.background.gray -text Gray -variable ::mollaunch::modifybg -value 2 -indicatoron 0 -command "color Display Background 2"
 
 ## Buttons section of GUI
 
-	labelframe $w.buttons -text "ADD" -pady 2 -font {-weight bold}
+	labelframe $w.buttons -text "Add Molecule" -pady 2 -font {-weight bold}
 	radiobutton $w.buttons.selectexample -variable additiontype -value example -text "Add Molecule from Examples"
 	radiobutton $w.buttons.selectpdb -variable additiontype -value pdb -text "Add Molecule from PDB"
 	button $w.buttons.add -text ADD -padx 5 -pady 5 -command "::mollaunch::results" -background green 
@@ -143,13 +154,14 @@ proc ::mollaunch::mollaunch {} {
 	grid $w.examples.path -in $w.examples -row 4 -column 1 -columnspan 2 -sticky w
 
 
-	grid $w.info -row 3 -column 1 -sticky ew
-	grid $w.info.frame -in $w.info
-	grid $w.info.frame.info -in $w.info.frame
+	grid $w.info -row 4 -column 2 -sticky nsew
+	grid $w.info.frame -in $w.info -row 1 -column 1
+	grid $w.info.frame.info -in $w.info.frame -row 1 -column 1
+	grid $w.info.copy -in $w.info -row 2 -column 1
 	grid propagate $w.info.frame 0
 
 
-	grid $w.pdb -padx 2 -ipady 2 -sticky nsew -row 4 -column 1 -columnspan 2
+	grid $w.pdb -padx 2 -ipady 2 -sticky nsew -row 3 -column 1 -rowspan 2
 	grid $w.pdb.id -in $w.pdb -row 1 -column 1 -sticky e
 	grid $w.pdb.idsearch -in $w.pdb -row 1 -column 2 -sticky w
 	grid $w.pdb.selectID -in $w.pdb -row 1 -column 4 -sticky w
@@ -162,7 +174,8 @@ proc ::mollaunch::mollaunch {} {
 	grid $w.pdb.framed -in $w.pdb -row 4 -column 1 -columnspan 5
 	grid $w.pdb.framed.nameresults -in $w.pdb.framed -row 1 -column 1 -sticky w
 	grid $w.pdb.framed.nameresultsscroll -in $w.pdb.framed -row 1 -column 1 -sticky nse
-	grid $w.pdb.framed.nameselect -in $w.pdb.framed -row 2 -column 1 -sticky w
+	grid $w.pdb.framed.horizontalscroll -in $w.pdb.framed -row 2 -column 1 -sticky new
+	grid $w.pdb.framed.nameselect -in $w.pdb.framed -row 3 -column 1 -sticky w
 	grid propagate $w.pdb.framed 0
 
 
@@ -170,27 +183,34 @@ proc ::mollaunch::mollaunch {} {
 	grid $w.lf_mod.draw -in $w.lf_mod -row 1 -column 1 -sticky ns
 	grid $w.lf_mod.color -in $w.lf_mod -row 1 -column 2 -sticky ew
 	grid $w.lf_mod.material -in $w.lf_mod -row 2 -column 1 -columnspan 2
-	grid $w.lf_mod.draw.lines -in $w.lf_mod.draw -column 1 -row 1 -sticky w
-	grid $w.lf_mod.draw.vwd -in $w.lf_mod.draw -column 1 -row 2 -sticky w
-	grid $w.lf_mod.draw.licorice -in $w.lf_mod.draw -column 1 -row 3 -sticky w
-	grid $w.lf_mod.draw.ribbon -in $w.lf_mod.draw -column 1 -row 4 -sticky w
-	grid $w.lf_mod.draw.newribbon -in $w.lf_mod.draw -column 1 -row 5 -sticky w
-	grid $w.lf_mod.draw.surf -in $w.lf_mod.draw -column 2 -row 1 -sticky w
-	grid $w.lf_mod.draw.quicksurf -in $w.lf_mod.draw -column 2 -row 2 -sticky w
-	grid $w.lf_mod.draw.cartoon -in $w.lf_mod.draw -column 2 -row 3 -sticky w
-	grid $w.lf_mod.draw.newcartoon -in $w.lf_mod.draw -column 2 -row 4 -sticky w
-	grid $w.lf_mod.draw.cpk -in $w.lf_mod.draw -column 2 -row 5 -sticky w
+	grid $w.lf_mod.background -in $w.lf_mod -row 3 -column 1 -columnspan 2
+	grid $w.lf_mod.draw.lines -in $w.lf_mod.draw -column 1 -row 1 -sticky ew
+	grid $w.lf_mod.draw.vwd -in $w.lf_mod.draw -column 1 -row 2 -sticky ew
+	grid $w.lf_mod.draw.licorice -in $w.lf_mod.draw -column 1 -row 3 -sticky ew
+	grid $w.lf_mod.draw.ribbon -in $w.lf_mod.draw -column 1 -row 4 -sticky ew
+	grid $w.lf_mod.draw.newribbon -in $w.lf_mod.draw -column 1 -row 5 -sticky ew
+	grid $w.lf_mod.draw.paperchain -in $w.lf_mod.draw -column 1 -row 6 -sticky ew
+	grid $w.lf_mod.draw.surf -in $w.lf_mod.draw -column 2 -row 1 -sticky ew
+	grid $w.lf_mod.draw.quicksurf -in $w.lf_mod.draw -column 2 -row 2 -sticky ew
+	grid $w.lf_mod.draw.cartoon -in $w.lf_mod.draw -column 2 -row 3 -sticky ew
+	grid $w.lf_mod.draw.newcartoon -in $w.lf_mod.draw -column 2 -row 4 -sticky ew
+	grid $w.lf_mod.draw.cpk -in $w.lf_mod.draw -column 2 -row 5 -sticky ew
+	grid $w.lf_mod.draw.beads -in $w.lf_mod.draw -column 2 -row 6 -sticky ew
 	grid $w.lf_mod.color.default -in $w.lf_mod.color -column 1 -row 1 -sticky ew
 	grid $w.lf_mod.color.red -in $w.lf_mod.color -column 1 -row 2 -sticky ew
 	grid $w.lf_mod.color.green -in $w.lf_mod.color -column 1 -row 3 -sticky ew
 	grid $w.lf_mod.color.blue -in $w.lf_mod.color -column 1 -row 4 -sticky ew
 	grid $w.lf_mod.color.yellow -in $w.lf_mod.color -column 1 -row 5 -sticky ew
 	grid $w.lf_mod.color.orange -in $w.lf_mod.color -column 1 -row 6 -sticky ew
-	grid $w.lf_mod.material.opaque -in $w.lf_mod.material -column 1 -row 1 -sticky w
-	grid $w.lf_mod.material.glossy -in $w.lf_mod.material -column 2 -row 1 -sticky w
-	grid $w.lf_mod.material.diffuse -in $w.lf_mod.material -column 3 -row 1 -sticky w
+	grid $w.lf_mod.material.opaque -in $w.lf_mod.material -column 1 -row 1
+	grid $w.lf_mod.material.glossy -in $w.lf_mod.material -column 2 -row 1
+	grid $w.lf_mod.material.diffuse -in $w.lf_mod.material -column 3 -row 1
+	grid $w.lf_mod.material.transparent -in $w.lf_mod.material -column 4 -row 1
+	grid $w.lf_mod.background.white -in $w.lf_mod.background -column 1 -row 1
+	grid $w.lf_mod.background.black -in $w.lf_mod.background -column 2 -row 1
+	grid $w.lf_mod.background.gray -in $w.lf_mod.background -column 3 -row 1
 
-	grid $w.buttons -row 2 -column 2 -sticky n -rowspan 2
+	grid $w.buttons -row 2 -column 2 -rowspan 2
 	grid $w.buttons.selectexample -in $w.buttons -row 1 -column 1 -sticky w -columnspan 3
 	grid $w.buttons.selectpdb -in $w.buttons -row 2 -column 1 -sticky w -columnspan 3
 	grid $w.buttons.add -in $w.buttons -row 3 -column 1 -rowspan 2
@@ -205,6 +225,7 @@ proc ::mollaunch::mollaunch {} {
 	$w.lf_mod.draw.lines select
 	$w.lf_mod.color.default select
 	$w.lf_mod.material.opaque select
+	$w.lf_mod.background.black select
 }
 
 ################################################################################
@@ -345,6 +366,7 @@ proc ::mollaunch::spinboxmodify {} {
 	}
 	mol modstyle 0 [$::mollaunch::w.buttons.spin get] $::mollaunch::modifydraw
 	mol modmaterial 0 [$::mollaunch::w.buttons.spin get] $::mollaunch::modifymaterial
+	color Display Background $::mollaunch::modifybg
 }
 
 # ::mollaunch::spinboxdelete
@@ -356,7 +378,7 @@ proc ::mollaunch::spinboxdelete {} {
 	mol delete [$::mollaunch::w.buttons.spin get]
 }
 
-## Result Procedures
+# Result Procedures
 
 # ::mollaunch::results
 # 	Checks which kind of molecule to add (example, pdb by ID, or 
@@ -373,42 +395,51 @@ proc ::mollaunch::results {} {
 
 	if {$additiontype == {pdb}} {
 		if {$additiontypepdb == {ID}} {
-			if {$::mollaunch::pdbmoleculeid != {None}} {
+			if {$::mollaunch::pdbmoleculeid != "ID #"} {
 				::mollaunch::getpdb $::mollaunch::pdbmoleculeid
 				::mollaunch::pdbinfo [string toupper $::mollaunch::pdbmoleculeid]
 				::mollaunch::modifymolecule
 			}
 		} else {
-			if {$::mollaunch::pdbmoleculeresult != {None}} {
+			if {$::mollaunch::pdbmoleculeresult != ""} {
 				::mollaunch::getpdb [string range $::mollaunch::pdbmoleculeresult 0 3]
 				::mollaunch::pdbinfo [string range $::mollaunch::pdbmoleculeresult 0 3]
 				::mollaunch::modifymolecule
 			}
 		}
 	} else {
-		if {$::mollaunch::examplemoleculename != {None}} {
+		if {$::mollaunch::examplemoleculename != ""} {
 			::mollaunch::examplesadd
 			set file [open [lindex [glob -directory $::mollaunch::examplemoleculename info.txt] 0] r]
-			set data [read $file]
+			set ::mollaunch::moleculeinfo [read $file]
 			close $file
-			$::mollaunch::w.info.frame.info configure -text $data
+			$::mollaunch::w.info.frame.info configure -text $::mollaunch::moleculeinfo
 		}
 	}
 }
 
-## ::mollaunch::pdbinfo
+# ::mollaunch::clipboardcopy
+# 	Copy's molecule info to clipboard.
+
+proc ::mollaunch::clipboardcopy {} {
+	clipboard clear
+	clipboard append $::mollaunch::moleculeinfo
+}
+
+# ::mollaunch::pdbinfo
 # 	Displays information about molecule when pdb is added.
 
 proc ::mollaunch::pdbinfo {molID} {
 	foreach value $::mollaunch::entrieslist {
 		if {[string range $value 0 3] == $molID} {
 			set valuelist [split $value "\t"]
-			$::mollaunch::w.info.frame.info configure -text "[lindex $valuelist 0]\t[lindex $valuelist 2]\n[lindex $valuelist 3]\n[lindex $valuelist 5]\n[lindex $valuelist 6] A\t[lindex $valuelist 7]"
+			set ::mollaunch::moleculeinfo "[lindex $valuelist 0]\t[lindex $valuelist 2]\n[lindex $valuelist 3]\n[lindex $valuelist 5]\n[lindex $valuelist 6] A\t[lindex $valuelist 7]"
+			$::mollaunch::w.info.frame.info configure -text $::mollaunch::moleculeinfo
 		}
 	}
 }
 
-## ::mollaunch::examplesadd
+# ::mollaunch::examplesadd
 # 	Adds commands to VMD based on command.txt to add and modify molecules
 # 	in directory.
 
