@@ -14,7 +14,7 @@ support VMD.
 <h2>Download Instructions</h2>
 The VMD extension MolLaunch can be downloaded here by either using the git command in the command line:
 
-`git clone http://github.com/brit228/MolLaunch`
+`git clone https://github.com/brit228/MolLaunch.git`
 
 Or by using the download zip feature in GitHub and unzipping in your preferred place.
 
