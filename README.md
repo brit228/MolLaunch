@@ -33,4 +33,25 @@ Installation of MolLaunch is now complete!
 
 <h2>Using MolLaunch</h2>
 MolLaunch can be opened by now going into VMD and either typing into the console `mollaunch`, or by using the Extensions dropdown
-in the VMD Main Window.
+in the VMD Main Window and selecting MolLaunch.
+
+Examples of different molecules can be found in the top left of the MolLaunch window, and can be loaded into VMD by first selecting the
+category of molecule, then selecting the molecule itself, selecting "Add Molecule from Examples" from the right side of the window and
+clicking "ADD".
+
+Molecules can also be imported from the Protein Data Bank, by typing in the PDB ID in the Molecule ID box, selecting "Add by
+Molecule ID", selecting "Add Molecule from PDB", and clicking "ADD". Molecules can also be searched through the Protein Data Bank
+by typing in a search term in the "Search by name" box, selecting the desired description of the molecule, selecting "Add by Molecule
+Name", selecting "Add Molecule from PDB", and clicking "ADD".
+
+When clicking "ADD", the molecule will appear in VMD using the representation options selected in the top right side of the screen.
+These can be changed by clicking on them, with the changeable options being the "Drawing Method", "Color", and "Material". The 
+"Background" will change each time a new background is selected.
+
+The molecules imported to VMD can also be modified or deleted from MolLaunch. To modify a molecule select the representation options 
+wanted in the top right of the screen, select the molecule number from the right side of the screen next to "Modify" and "Delete", and 
+click "Modify". The molecule number is the "ID" shown for the molecule in the VMD Main Window. To delete a molecule, select the molecule
+number and click "Delete".
+
+Info about Protein Data Bank molecules will appear in the bottom right side of the screen. This information can be copied to the
+clipboard to be pasted anywhere by pressing the "Copy to Clipboard" button.
